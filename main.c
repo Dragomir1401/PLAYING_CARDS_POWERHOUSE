@@ -3,12 +3,14 @@
 #include <string.h>
 #include "structures.h"
 #include "headers.h"
+#include "error_messages.h"
 #define COMMAND_MAX 50
 #define BUFFER_MAX 200
 #define SYMBOL_MAX 15
 int main(void)
 {
-    //dll_deck *list_decks;
+    dll_deck *list_decks;
+    list_decks = dll_deck_create(sizeof(card));
     while (1)
     {
         char buff[BUFFER_MAX];
@@ -19,25 +21,47 @@ int main(void)
             deck *card_deck = deck_create(sizeof(id));
             token = strtok(NULL, " ");
             int nr_cards = atoi(token);
-            //printf("%d\n", nr_cards);
             for (int i = 0; i < nr_cards; i++)
             {
                 id card_id;
                 fgets(buff, BUFFER_MAX, stdin);
                 token = strtok(buff, " ");
-                //printf("%s ", token);
                 card_id.value = atoi(token);
                 token = strtok(NULL, " ");
-                //printf("%s\n", token);
                 strcpy(card_id.symbol, token);
                 deck_add_nth_card(card_deck, nr_cards, &card_id);
             }
-
-            deck_print_list(card_deck);
+            dll_deck_add_nth_deck(list_decks, list_decks->size, card_deck);
+            printf("The deck was succesfully created with %d cards.\n", nr_cards);
+        }
+        else if (!strcmp(token, "SHOW_ALL"))
+        {
+            dll_show_all_decks(list_decks);
+        }
+        else if (!strcmp(token, "SHOW_DECK"))
+        {
+            token = strtok(NULL, " ");
+            unsigned int index = atoi(token);
+            if (index >= list_decks->size)
+                printf(DECK_INDEX_OUT_OF_BOUNDS);
+            else
+                dll_show_deck(list_decks, index);
         }
         else if (!strcmp(token, "EXIT"))
         {
+            dll_free(&list_decks);
             break;
+        }
+        else if (!strcmp(token, "DEL_DECK"))
+        {
+            token = strtok(NULL, " ");
+            unsigned int index = atoi(token);
+            del_deck(list_decks, index);
+        }
+
+        else
+        {
+            printf(INVALID_COMMAND);
         }
     }
     return 0;

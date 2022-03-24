@@ -8,7 +8,7 @@ TARGET=card_deck
 
 build: $(TARGET)
 
-card_deck: main.o deck_functions.o
+card_deck: main.o deck_functions.o dll_deck_functions.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 %.o: %.c
