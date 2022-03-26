@@ -9,60 +9,67 @@
 #define SYMBOL_MAX 15
 int main(void)
 {
-    dll_deck *list_decks;
+    dll_list *list_decks;
     list_decks = dll_deck_create(sizeof(card));
+    char *buff = malloc(BUFFER_MAX);
     while (1)
     {
-        char buff[BUFFER_MAX];
         fgets(buff, BUFFER_MAX, stdin);
-        char *token = strtok(buff, " \n");
-        if (!strcmp(token, "ADD_DECK"))
+        char *token = strtok(buff, "  ");
+        if (!strncmp(token, "ADD_DECK", 8))
         {
-            deck *card_deck = deck_create(sizeof(id));
-            token = strtok(NULL, " ");
+            dll_list *card_deck = deck_create(sizeof(card));
+            token = strtok(NULL, "  ");
             int nr_cards = atoi(token);
             for (int i = 0; i < nr_cards; i++)
             {
-                id card_id;
+                card card_id;
                 fgets(buff, BUFFER_MAX, stdin);
-                token = strtok(buff, " ");
-                card_id.value = atoi(token);
-                token = strtok(NULL, " ");
+                token = strtok(buff, "  ");
+                card_id.number = atoi(token);
+                token = strtok(NULL, "  ");
                 strcpy(card_id.symbol, token);
                 deck_add_nth_card(card_deck, nr_cards, &card_id);
             }
-            dll_deck_add_nth_deck(list_decks, list_decks->size, card_deck);
+            // dll_list *aux = card_deck->head;
+            // while (aux)
+            // {
+            //     printf("%d %s", ((card *)(aux->value))->number, ((card *)(aux->value))->symbol);
+            //     aux = aux->next;
+            // }
+            dll_deck_add_nth_deck(list_decks, dll_get_size(list_decks), card_deck); /// FIX
+            //printf("%d\n", dll_get_size(list_decks));
             printf("The deck was succesfully created with %d cards.\n", nr_cards);
         }
-        else if (!strcmp(token, "SHOW_ALL"))
+        else if (!strncmp(token, "SHOW_ALL", 8))
         {
             dll_show_all_decks(list_decks);
         }
-        else if (!strcmp(token, "SHOW_DECK"))
+        else if (!strncmp(token, "SHOW_DECK", 9))
         {
-            token = strtok(NULL, " ");
+            token = strtok(NULL, "  ");
             unsigned int index = atoi(token);
-            if (index >= list_decks->size)
+            if (index >= dll_get_size(list_decks))
                 printf(DECK_INDEX_OUT_OF_BOUNDS);
             else
                 dll_show_deck(list_decks, index);
         }
-        else if (!strcmp(token, "EXIT"))
+        else if (!strncmp(token, "EXIT", 4))
         {
             dll_free(&list_decks);
             break;
         }
-        else if (!strcmp(token, "DEL_DECK"))
+        else if (!strncmp(token, "DEL_DECK", 8))
         {
-            token = strtok(NULL, " ");
+            token = strtok(NULL, "  ");
             unsigned int index = atoi(token);
             del_deck(list_decks, index);
         }
-
         else
         {
             printf(INVALID_COMMAND);
         }
     }
+    free(buff);
     return 0;
 }

@@ -4,73 +4,78 @@
 #include "structures.h"
 #include "headers.h"
 #include "error_messages.h"
-dll_deck *dll_deck_create(unsigned int id_size)
+dll_list *dll_deck_create()
 {
-    dll_deck *list = malloc(sizeof(dll_deck));
+    dll_list *list = malloc(sizeof(dll_list));
     if (!list)
         printf("Cant alloc memory for list.");
-
     list->head = NULL;
-    list->data_size = id_size;
-    list->size = 0;
-
     return list;
 }
 
-deck *dll_deck_get_nth_deck(dll_deck *list, unsigned int n)
+dll_list *dll_deck_get_nth_deck(dll_list *list, unsigned int n)
 {
     if (!list)
         printf("List is NULL.");
 
-    deck *aux = list->head;
-    n = n % list->size; // wowow be careful
+    dll_list *aux = list->head;
+    n = n % dll_get_size(list); // wowow be careful
     for (unsigned int i = 0; i < n; i++)
         aux = aux->next;
 
     return aux;
 }
 
-deck *dll_deck_remove_nth_deck(dll_deck *list, unsigned int n)
+dll_list *dll_deck_remove_nth_deck(dll_list *list, unsigned int n)
 {
-    deck *behind;
+    dll_list *behind;
     if (!n)
     {
-        deck *removed = list->head;
+        dll_list *removed = list->head;
         list->head = removed->next;
-        list->size--;
         return removed;
     }
 
-    if (n > list->size)
-        n = list->size - 1;
+    if (n > dll_get_size(list))
+        n = dll_get_size(list) - 1;
 
     behind = dll_deck_get_nth_deck(list, n - 1);
-    deck *removed = behind->next;
+    dll_list *removed = behind->next;
     behind->next = removed->next;
-    if (n < list->size - 1)
+    if (n < dll_get_size(list) - 1)
         removed->next->prev = behind;
-    list->size--;
-
     return removed;
 }
 
-void dll_deck_add_nth_deck(dll_deck *list, unsigned int n, const void *id)
+void dll_deck_add_nth_deck(dll_list *list, unsigned int n, const void *id)
 {
     if (!list)
         printf("List is NULL.");
-    deck *new_node = (deck *)id;
-    if (!list->size)
+    // dll_list *new_node = (dll_list *)id;
+
+    dll_list *new_node = malloc(sizeof(dll_list));
+    if (!new_node)
+    {
+        printf("Cant alloc memory for nodes.");
+    }
+    new_node->value = malloc(sizeof(dll_list));
+    if (!new_node->value)
+    {
+        printf("Cant alloc memory for nodes id.");
+    }
+    memcpy(new_node->value, id, sizeof(dll_list));
+
+    if (!dll_get_size(list))
     {
         new_node->next = NULL;
         new_node->prev = NULL;
         list->head = new_node;
-        list->size++;
         return;
     }
 
-    if (n < list->size)
+    if (n < dll_get_size(list))
     {
-        deck *aux;
+        dll_list *aux;
         if (n)
         {
             aux = list->head;
@@ -81,83 +86,100 @@ void dll_deck_add_nth_deck(dll_deck *list, unsigned int n, const void *id)
             aux->next = new_node;
             new_node->prev = aux;
             new_node->next->prev = new_node;
-            list->size++;
             return;
         }
         else
         {
             new_node->prev = NULL;
             new_node->next = list->head;
-            list->head->prev = new_node;
+            ((dll_list *)list->head)->prev = new_node;
             list->head = new_node;
-            list->size++;
             return;
         }
     }
 
-    deck *aux = list->head;
-    for (unsigned int i = 0; i < list->size - 1; i++)
+    dll_list *aux = list->head;
+    for (unsigned int i = 0; i < dll_get_size(list) - 1; i++)
         aux = aux->next;
     aux->next = new_node;
     new_node->next = NULL;
     new_node->prev = aux;
-    list->size++;
 }
 
-void dll_show_all_decks(dll_deck *list)
+void dll_show_all_decks(dll_list *list)
 {
-    deck *aux = list->head;
-    for (unsigned int i = 0; i < list->size; i++)
+    dll_list *aux = list->head;
+    int i = 0;
+    while (aux)
     {
         printf("Deck %d:\n", i);
-        card *aux1 = aux->head;
-        for (unsigned int i = 0; i < aux->size; i++)
+        dll_list *aux1 = ((dll_list *)(aux->value))->head;
+        card *aux2;
+        while (aux1)
         {
-            printf("\t%d %s", aux1->id->value, aux1->id->symbol);
+            aux2 = (card *)(aux1->value);
+            printf("\t%d %s", aux2->number, aux2->symbol);
             aux1 = aux1->next;
         }
+        i++;
         aux = aux->next;
     }
 }
 
-void dll_free(dll_deck **pp_list)
+void dll_free(dll_list **pp_list)
 {
-    int n = (*pp_list)->size;
+    int n = dll_get_size(*pp_list);
     for (int i = 0; i < n; i++)
     {
-        deck *aux = dll_deck_remove_nth_deck(*pp_list, 0);
+        dll_list *aux = dll_deck_remove_nth_deck(*pp_list, 0);
         deck_free(&aux);
     }
 
     free(*pp_list);
 }
 
-void dll_show_deck(dll_deck *list, int n)
+void dll_show_deck(dll_list *list, int n)
 {
-    deck *aux = list->head;
-    for (unsigned int i = 0; i < list->size; i++)
+    dll_list *aux = list->head;
+    int i = 0;
+    while (aux)
     {
-        if ((int)i == n)
+        if (i == n)
         {
             printf("Deck %d:\n", i);
-            card *aux1 = aux->head;
-            for (unsigned int i = 0; i < aux->size; i++)
+            dll_list *aux1 = ((dll_list *)(aux->value))->head;
+            card *aux2;
+            while (aux1)
             {
-                printf("\t%d %s", aux1->id->value, aux1->id->symbol);
+                aux2 = (card *)(aux1->value);
+                printf("\t%d %s", aux2->number, aux2->symbol);
                 aux1 = aux1->next;
             }
+            i++;
+            aux = aux->next;
         }
-        aux = aux->next;
     }
 }
 
-void del_deck(dll_deck *list, unsigned int index)
+void del_deck(dll_list *list, unsigned int index)
 {
-    if (index >= list->size)
+    if (index >= dll_get_size(list))
         printf(DECK_INDEX_OUT_OF_BOUNDS);
     else
     {
-        deck *removed = dll_deck_remove_nth_deck(list, index);
+        dll_list *removed = dll_deck_remove_nth_deck(list, index);
         deck_free(&removed);
     }
+}
+
+unsigned int dll_get_size(dll_list *list)
+{
+    dll_list *aux = list->head;
+    int i = 0;
+    while (aux)
+    {
+        i++;
+        aux = aux->next;
+    }
+    return i;
 }

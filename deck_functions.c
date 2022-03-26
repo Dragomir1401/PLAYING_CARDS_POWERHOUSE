@@ -2,72 +2,68 @@
 #include <stdlib.h>
 #include <string.h>
 #include "structures.h"
-deck *deck_create(unsigned int id_size)
+#include "headers.h"
+
+dll_list *deck_create()
 {
-    deck *list = malloc(sizeof(deck));
+    dll_list *list = malloc(sizeof(dll_list));
     if (!list)
         printf("Cant alloc memory for list.");
-
     list->head = NULL;
-    list->data_size = id_size;
-    list->size = 0;
-
     return list;
 }
 
-card *deck_get_nth_card(deck *list, unsigned int n)
+dll_list *deck_get_nth_card(dll_list *list, unsigned int n)
 {
     if (!list)
         printf("List is NULL.");
 
-    card *aux = list->head;
-    n = n % list->size;
-    for (int i = 0; i < n; i++)
+    dll_list *aux = list->head;
+    n = n % dll_get_size(list);
+    for (unsigned int i = 0; i < n; i++)
         aux = aux->next;
 
     return aux;
 }
 
-void deck_add_nth_card(deck *list, unsigned int n, const void *id)
+void deck_add_nth_card(dll_list *list, unsigned int n, const void *id)
 {
     if (!list)
         printf("List is NULL.");
 
-    card *new_node = malloc(sizeof(card));
+    dll_list *new_node = malloc(sizeof(dll_list));
     if (!new_node)
     {
         printf("Cant alloc memory for nodes.");
     }
-    new_node->id = malloc(list->data_size);
-    if (!new_node->id)
+    new_node->value = malloc(sizeof(card));
+    if (!new_node->value)
     {
         printf("Cant alloc memory for nodes id.");
     }
-    memcpy(new_node->id, id, list->data_size);
+    memcpy(new_node->value, id, sizeof(card));
 
-    if (!list->size)
+    if (!dll_get_size(list))
     {
         new_node->next = NULL;
         new_node->prev = NULL;
         list->head = new_node;
-        list->size++;
         return;
     }
 
-    if (n < list->size)
+    if (n < dll_get_size(list))
     {
-        card *aux;
+        dll_list *aux;
         if (n)
         {
             aux = list->head;
-            for (int i = 0; i < n - 1; i++)
+            for (unsigned int i = 0; i < n - 1; i++)
                 aux = aux->next;
 
             new_node->next = aux->next;
             aux->next = new_node;
             new_node->prev = aux;
             new_node->next->prev = new_node;
-            list->size++;
             return;
         }
         else
@@ -76,77 +72,49 @@ void deck_add_nth_card(deck *list, unsigned int n, const void *id)
             new_node->next = list->head;
             list->head->prev = new_node;
             list->head = new_node;
-            list->size++;
             return;
         }
     }
 
-    card *aux = list->head;
-    for (int i = 0; i < list->size - 1; i++)
+    dll_list *aux = list->head;
+    for (unsigned int i = 0; i < dll_get_size(list) - 1; i++)
         aux = aux->next;
     aux->next = new_node;
     new_node->next = NULL;
     new_node->prev = aux;
-    list->size++;
 }
 
-card *deck_remove_nth_card(deck *list, unsigned int n)
+dll_list *deck_remove_nth_card(dll_list *list, unsigned int n)
 {
-    card *behind;
+    dll_list *behind;
     if (!n)
     {
-        card *removed = list->head;
+        dll_list *removed = list->head;
         list->head = removed->next;
-        list->size--;
         return removed;
     }
 
-    if (n > list->size)
-        n = list->size - 1;
+    if (n > dll_get_size(list))
+        n = dll_get_size(list) - 1;
 
     behind = deck_get_nth_card(list, n - 1);
-    card *removed = behind->next;
+    dll_list *removed = behind->next;
     behind->next = removed->next;
     removed->next->prev = behind;
-    list->size--;
 
     return removed;
 }
 
-unsigned deck_get_size(deck *list)
+void deck_free(dll_list **pp_list)
 {
 
-    return list->size;
-}
-
-void deck_free(deck **pp_list)
-{
-
-    int n = (*pp_list)->size;
+    int n = dll_get_size(*pp_list);
     for (int i = 0; i < n; i++)
     {
-        card *aux = deck_remove_nth_card(*pp_list, 0);
-        free(aux->id);
+        dll_list *aux = deck_remove_nth_card(*pp_list, 0);
+        free(aux->value);
         free(aux);
     }
 
     free(*pp_list);
-}
-
-void deck_print_list(deck *list)
-{
-    if (!list)
-    {
-        printf("List is NULL.");
-        return;
-    }
-
-    card *aux = list->head;
-    do
-    {
-        printf("%d %s", ((id *)aux->id)->value, ((id *)aux->id)->symbol);
-        aux = aux->next;
-    } while (aux);
-
-    printf("\n");
 }
