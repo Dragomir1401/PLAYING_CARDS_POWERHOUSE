@@ -3,7 +3,7 @@
 #include <string.h>
 #include "structures.h"
 #include "headers.h"
-
+#include "error_messages.h"
 dll_list *deck_create()
 {
     dll_list *list = malloc(sizeof(dll_list));
@@ -43,45 +43,7 @@ void deck_add_nth_card(dll_list *list, unsigned int n, const void *id)
     }
     memcpy(new_node->value, id, sizeof(card));
 
-    if (!dll_get_size(list))
-    {
-        new_node->next = NULL;
-        new_node->prev = NULL;
-        list->head = new_node;
-        return;
-    }
-
-    if (n < dll_get_size(list))
-    {
-        dll_list *aux;
-        if (n)
-        {
-            aux = list->head;
-            for (unsigned int i = 0; i < n - 1; i++)
-                aux = aux->next;
-
-            new_node->next = aux->next;
-            aux->next = new_node;
-            new_node->prev = aux;
-            new_node->next->prev = new_node;
-            return;
-        }
-        else
-        {
-            new_node->prev = NULL;
-            new_node->next = list->head;
-            list->head->prev = new_node;
-            list->head = new_node;
-            return;
-        }
-    }
-
-    dll_list *aux = list->head;
-    for (unsigned int i = 0; i < dll_get_size(list) - 1; i++)
-        aux = aux->next;
-    aux->next = new_node;
-    new_node->next = NULL;
-    new_node->prev = aux;
+    general_add_node(list, new_node, n);
 }
 
 dll_list *deck_remove_nth_card(dll_list *list, unsigned int n)
@@ -100,21 +62,44 @@ dll_list *deck_remove_nth_card(dll_list *list, unsigned int n)
     behind = deck_get_nth_card(list, n - 1);
     dll_list *removed = behind->next;
     behind->next = removed->next;
-    removed->next->prev = behind;
+    if (n < dll_get_size(list) - 1)
+        removed->next->prev = behind;
 
     return removed;
 }
 
-void deck_free(dll_list **pp_list)
+void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card)
 {
-
-    int n = dll_get_size(*pp_list);
-    for (int i = 0; i < n; i++)
+    if (index_deck > dll_get_size(list))
     {
-        dll_list *aux = deck_remove_nth_card(*pp_list, 0);
-        free(aux->value);
-        free(aux);
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
     }
+    dll_list *to_delete = NULL;
+    dll_list *aux = list->head;
+    unsigned int i = 0;
+    while (aux)
+    {
+        if (i == index_deck)
+        {
+            dll_list *aux1 = ((dll_list *)(aux->value));
+            if (index_deck > dll_get_size(aux1) && !to_delete)
+            {
+                printf(CARD_INDEX_OUT_OF_BOUNDS);
+                return;
+            }
+            dll_list *removed = deck_remove_nth_card(aux1, index_card);
+            free(removed->value);
+            free(removed);
 
-    free(*pp_list);
+            if (!dll_get_size(aux1))
+            {
+                to_delete = aux1;
+            }
+        }
+
+        i++;
+        aux = aux->next;
+    }
+    del_deck(to_delete, index_deck);
 }

@@ -16,6 +16,7 @@ int main(void)
     {
         fgets(buff, BUFFER_MAX, stdin);
         char *token = strtok(buff, "  ");
+
         if (!strncmp(token, "ADD_DECK", 8))
         {
             dll_list *card_deck = deck_create(sizeof(card));
@@ -56,7 +57,7 @@ int main(void)
         }
         else if (!strncmp(token, "EXIT", 4))
         {
-            dll_free(&list_decks);
+            dll_free(list_decks);
             break;
         }
         else if (!strncmp(token, "DEL_DECK", 8))
@@ -64,6 +65,15 @@ int main(void)
             token = strtok(NULL, "  ");
             unsigned int index = atoi(token);
             del_deck(list_decks, index);
+        }
+        else if (!strncmp(token, "DEL_CARD", 8))
+        {
+            token = strtok(NULL, "  ");
+            unsigned int index_deck = atoi(token);
+            token = strtok(NULL, "  ");
+            unsigned int index_card = atoi(token);
+            del_card(list_decks, index_deck, index_card);
+            printf("The card was successfully deleted from deck %d.\n", index_deck);
         }
         else
         {
