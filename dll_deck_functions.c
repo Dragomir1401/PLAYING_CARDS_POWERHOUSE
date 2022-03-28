@@ -4,6 +4,8 @@
 #include "structures.h"
 #include "headers.h"
 #include "error_messages.h"
+#define BUFFER_MAX 200
+
 dll_list *dll_deck_create()
 {
     dll_list *list = malloc(sizeof(dll_list));
@@ -185,4 +187,33 @@ void general_add_node(dll_list *list, dll_list *new_node, unsigned int n)
     aux->next = new_node;
     new_node->next = NULL;
     new_node->prev = aux;
+}
+
+void add_additional_deck(dll_list *list_decks, char *token, dll_list *card_deck)
+{
+    token = strtok(NULL, "  ");
+    int nr_cards = atoi(token);
+
+    card card_id;
+    int count = 0;
+    while (count < nr_cards)
+    {
+        char *buff = malloc(BUFFER_MAX);
+        fgets(buff, BUFFER_MAX, stdin);
+        token = strtok(buff, "  ");
+        card_id.number = atoi(token);
+        token = strtok(NULL, "  ");
+        strcpy(card_id.symbol, token);
+        if (card_is_valid(card_id))
+        {
+            deck_add_nth_card(card_deck, nr_cards, &card_id);
+            count++;
+        }
+        else
+            printf(INVALID_CARD);
+        free(buff);
+    }
+
+    dll_deck_add_nth_deck(list_decks, dll_get_size(list_decks), card_deck);
+    printf("The deck was succesfully created with %d cards.\n", nr_cards);
 }

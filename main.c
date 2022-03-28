@@ -20,27 +20,7 @@ int main(void)
         if (!strncmp(token, "ADD_DECK", 8))
         {
             dll_list *card_deck = deck_create(sizeof(card));
-            token = strtok(NULL, "  ");
-            int nr_cards = atoi(token);
-            for (int i = 0; i < nr_cards; i++)
-            {
-                card card_id;
-                fgets(buff, BUFFER_MAX, stdin);
-                token = strtok(buff, "  ");
-                card_id.number = atoi(token);
-                token = strtok(NULL, "  ");
-                strcpy(card_id.symbol, token);
-                deck_add_nth_card(card_deck, nr_cards, &card_id);
-            }
-            // dll_list *aux = card_deck->head;
-            // while (aux)
-            // {
-            //     printf("%d %s", ((card *)(aux->value))->number, ((card *)(aux->value))->symbol);
-            //     aux = aux->next;
-            // }
-            dll_deck_add_nth_deck(list_decks, dll_get_size(list_decks), card_deck); /// FIX
-            //printf("%d\n", dll_get_size(list_decks));
-            printf("The deck was succesfully created with %d cards.\n", nr_cards);
+            add_additional_deck(list_decks, token, card_deck);
         }
         else if (!strncmp(token, "SHOW_ALL", 8))
         {
@@ -68,12 +48,11 @@ int main(void)
         }
         else if (!strncmp(token, "DEL_CARD", 8))
         {
-            token = strtok(NULL, "  ");
-            unsigned int index_deck = atoi(token);
-            token = strtok(NULL, "  ");
-            unsigned int index_card = atoi(token);
-            del_card(list_decks, index_deck, index_card);
-            printf("The card was successfully deleted from deck %d.\n", index_deck);
+            del_certain_card(list_decks, token);
+        }
+        else if (!strncmp(token, "ADD_CARDS", 9))
+        {
+            add_additional_cards(list_decks, token);
         }
         else
         {

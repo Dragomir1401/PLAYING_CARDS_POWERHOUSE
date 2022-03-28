@@ -4,6 +4,8 @@
 #include "structures.h"
 #include "headers.h"
 #include "error_messages.h"
+#define BUFFER_MAX 200
+
 dll_list *deck_create()
 {
     dll_list *list = malloc(sizeof(dll_list));
@@ -75,15 +77,15 @@ void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card)
         printf(DECK_INDEX_OUT_OF_BOUNDS);
         return;
     }
-    dll_list *to_delete = NULL;
+
     dll_list *aux = list->head;
-    unsigned int i = 0;
+    unsigned int i = 0, delete = 0;
     while (aux)
     {
         if (i == index_deck)
         {
             dll_list *aux1 = ((dll_list *)(aux->value));
-            if (index_deck > dll_get_size(aux1) && !to_delete)
+            if (index_deck > dll_get_size(aux1) && !delete)
             {
                 printf(CARD_INDEX_OUT_OF_BOUNDS);
                 return;
@@ -93,13 +95,67 @@ void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card)
             free(removed);
 
             if (!dll_get_size(aux1))
-            {
-                to_delete = aux1;
-            }
+                delete = 1;
         }
 
         i++;
         aux = aux->next;
     }
-    del_deck(to_delete, index_deck);
+    if (delete)
+        del_deck(list, index_deck);
+}
+
+int card_is_valid(card card)
+{
+    int valid = 0;
+    if (!strncmp(card.symbol, "SPADES", 6))
+        valid = 1;
+    if (!strncmp(card.symbol, "HEART", 5))
+        valid = 1;
+    if (!strncmp(card.symbol, "CLUB", 4))
+        valid = 1;
+    if (!strncmp(card.symbol, "DIAMONDS", 8))
+        valid = 1;
+    if (card.number > 14 || card.number < 0)
+        valid = 0;
+    return valid;
+}
+
+void del_certain_card(dll_list *list_decks, char *token)
+{
+    token = strtok(NULL, "  ");
+    unsigned int index_deck = atoi(token);
+    token = strtok(NULL, "  ");
+    unsigned int index_card = atoi(token);
+    del_card(list_decks, index_deck, index_card);
+    printf("The card was successfully deleted from deck %d.\n", index_deck);
+}
+
+void add_additional_cards(dll_list *deck_list, char *token)
+{
+    token = strtok(NULL, "  ");
+    unsigned int index_deck = atoi(token);
+    token = strtok(NULL, "  ");
+    unsigned int nr_cards = atoi(token);
+
+    dll_list *card_deck = dll_deck_get_nth_deck(deck_list, index_deck);
+    card card_id;
+    unsigned int count = 0;
+    while (count < nr_cards)
+    {
+        char *buff = malloc(BUFFER_MAX);
+        fgets(buff, BUFFER_MAX, stdin);
+        token = strtok(buff, "  ");
+        card_id.number = atoi(token);
+        token = strtok(NULL, "  ");
+        strcpy(card_id.symbol, token);
+        if (card_is_valid(card_id))
+        {
+            deck_add_nth_card(card_deck, nr_cards, &card_id);
+            count++;
+        }
+        else
+            printf(INVALID_CARD);
+        free(buff);
+    }
 }

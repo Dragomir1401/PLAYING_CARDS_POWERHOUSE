@@ -15,3 +15,7 @@ dll_list *deck_remove_nth_card(dll_list *list, unsigned int n);
 void dll_deck_add_nth_deck(dll_list *list, unsigned int n, const void *id);
 void general_add_node(dll_list *list, dll_list *new_node, unsigned int n);
 void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card);
+int card_is_valid(card card);
+void del_certain_card(dll_list *list_decks, char *token);
+void add_additional_deck(dll_list *list_decks, char *token, dll_list *card_deck);
+void add_additional_cards(dll_list *deck_list, char *token);
