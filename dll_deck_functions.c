@@ -21,18 +21,18 @@ dll_list *dll_deck_get_nth_deck(dll_list *list, unsigned int n)
         printf("List is NULL.");
 
     dll_list *aux = list->head;
-    n = n % dll_get_size(list); // wowow be careful
+    if (n >= dll_get_size(list))
+        n = dll_get_size(list) - 1;
     for (unsigned int i = 0; i < n; i++)
         aux = aux->next;
 
-    return aux;
+    return (dll_list *)(aux->value);
 }
 
 void dll_deck_add_nth_deck(dll_list *list, unsigned int n, const void *id)
 {
     if (!list)
         printf("List is NULL.");
-    // dll_list *new_node = (dll_list *)id;
 
     dll_list *new_node = malloc(sizeof(dll_list));
     if (!new_node)

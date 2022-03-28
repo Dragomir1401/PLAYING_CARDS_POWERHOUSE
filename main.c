@@ -54,6 +54,18 @@ int main(void)
         {
             add_additional_cards(list_decks, token);
         }
+        else if (!strncmp(token, "DECK_NUMBER", 11))
+        {
+            printf("The number of decks is %d.\n", dll_get_size(list_decks));
+        }
+        else if (!strncmp(token, "DECK_LEN", 8))
+        {
+            len_of_deck(list_decks, token);
+        }
+        else if (!strncmp(token, "SHUFFLE_DECK", 12))
+        {
+            shuffle_deck(list_decks, token);
+        }
         else
         {
             printf(INVALID_COMMAND);

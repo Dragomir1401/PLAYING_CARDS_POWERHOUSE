@@ -151,7 +151,7 @@ void add_additional_cards(dll_list *deck_list, char *token)
         strcpy(card_id.symbol, token);
         if (card_is_valid(card_id))
         {
-            deck_add_nth_card(card_deck, nr_cards, &card_id);
+            deck_add_nth_card(card_deck, dll_get_size(card_deck), &card_id);
             count++;
         }
         else
@@ -159,3 +159,119 @@ void add_additional_cards(dll_list *deck_list, char *token)
         free(buff);
     }
 }
+
+void len_of_deck(dll_list *deck_list, char *token)
+{
+    token = strtok(NULL, " ");
+    unsigned int deck_index = atoi(token);
+    dll_list *aux = deck_list->head;
+    unsigned int i = 0;
+    while (aux)
+    {
+        dll_list *aux1 = (dll_list *)(aux->value);
+        if (i == deck_index)
+        {
+            printf("The length of deck %d is %d.\n", deck_index, dll_get_size(aux1));
+        }
+        i++;
+        aux = aux->next;
+    }
+}
+
+void shuffle_deck(dll_list *deck_list, char *token)
+{
+    token = strtok(NULL, " ");
+    unsigned int index_deck = atoi(token);
+    dll_list *cards = dll_deck_get_nth_deck(deck_list, index_deck);
+    int size;
+
+    size = dll_get_size(cards);
+
+    dll_list *mid = cards->head;
+    int n = 0;
+    while (n < size / 2)
+    {
+        mid = mid->next;
+        n++;
+    }
+
+    dll_list *last = cards->head;
+    n = 0;
+    while (n < size - 1)
+    {
+        last = last->next;
+        n++;
+    }
+    dll_list *first = cards->head;
+
+    cards->head = mid;
+    last->next = first;
+    first->prev = last;
+    mid->prev->next = NULL;
+    mid->prev = NULL;
+
+    // dll_list *aux1 = cards->head;
+    // int half;
+    // if (size % 2)
+    //     half = size / 2 + 1;
+    // else
+    //     half = size / 2;
+    // for (int i = 0; i < half; i++)
+    // {
+    //     change_nodes(aux1, aux);
+    //     printf("---%d %d---\n", ((card *)(aux1->value))->number, ((card *)(aux->value))->number);
+    //     if (aux->next)
+    //         aux = aux->next;
+    //     if (aux1->next)
+    //         aux1 = aux1->next;
+    // }
+}
+
+// void change_nodes(dll_list *a, dll_list *b)
+// {
+//     dll_list *left_first, *right_first, *left_second, *right_second;
+//     int cases = 0;
+//     if (a->prev != NULL)
+//         left_first = a->prev;
+//     else
+//         cases = 1;
+
+//     right_first = a->next;
+//     left_second = b->prev;
+
+//     if (b->next != NULL)
+//         right_second = b->next;
+//     else
+//     {
+//         if (cases == 1)
+//             cases = 3;
+//         else
+//             cases = 2;
+//     }
+
+//     if (cases == 0 || cases == 2)
+//     {
+//         left_first->next = b;
+//         b->prev = left_first;
+//     }
+//     else
+//     {
+//         b->prev = NULL;
+//     }
+
+//     b->next = right_first;
+//     right_first->prev = b;
+
+//     left_second->next = a;
+//     a->prev = left_second;
+
+//     if (cases == 0 || cases == 1)
+//     {
+//         right_second->prev = b;
+//         b->next = right_second;
+//     }
+//     else
+//     {
+//         b->next = NULL;
+//     }
+// }

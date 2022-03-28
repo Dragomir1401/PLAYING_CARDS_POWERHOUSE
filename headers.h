@@ -19,3 +19,6 @@ int card_is_valid(card card);
 void del_certain_card(dll_list *list_decks, char *token);
 void add_additional_deck(dll_list *list_decks, char *token, dll_list *card_deck);
 void add_additional_cards(dll_list *deck_list, char *token);
+void len_of_deck(dll_list *deck_list, char *token);
+void shuffle_deck(dll_list *deck_list, char *token);
+// void change_nodes(dll_list *a, dll_list *b);
