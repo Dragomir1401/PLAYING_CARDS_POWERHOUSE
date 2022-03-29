@@ -85,9 +85,9 @@ void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card)
         if (i == index_deck)
         {
             dll_list *aux1 = ((dll_list *)(aux->value));
-            if (index_deck > dll_get_size(aux1) && !delete)
+            if (index_card >= dll_get_size(aux1) && !delete)
             {
-                printf(CARD_INDEX_OUT_OF_BOUNDS);
+                printf(CARD_INDEX_OUT_OF_BOUNDS, index_deck);
                 return;
             }
             dll_list *removed = deck_remove_nth_card(aux1, index_card);
@@ -102,19 +102,20 @@ void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card)
         aux = aux->next;
     }
     if (delete)
-        del_deck(list, index_deck);
+        del_deck(list, index_deck, 1);
+    printf("The card was successfully deleted from deck %d.\n", index_deck);
 }
 
 int card_is_valid(card card)
 {
     int valid = 0;
-    if (!strncmp(card.symbol, "SPADES", 6))
+    if (!strncmp(card.symbol, "SPADE", 5))
         valid = 1;
     if (!strncmp(card.symbol, "HEART", 5))
         valid = 1;
     if (!strncmp(card.symbol, "CLUB", 4))
         valid = 1;
-    if (!strncmp(card.symbol, "DIAMONDS", 8))
+    if (!strncmp(card.symbol, "DIAMOND", 7))
         valid = 1;
     if (card.number > 14 || card.number < 0)
         valid = 0;
@@ -127,8 +128,14 @@ void del_certain_card(dll_list *list_decks, char *token)
     unsigned int index_deck = atoi(token);
     token = strtok(NULL, "  ");
     unsigned int index_card = atoi(token);
+
+    if (index_deck >= dll_get_size(list_decks))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
+
     del_card(list_decks, index_deck, index_card);
-    printf("The card was successfully deleted from deck %d.\n", index_deck);
 }
 
 void add_additional_cards(dll_list *deck_list, char *token)
@@ -137,6 +144,11 @@ void add_additional_cards(dll_list *deck_list, char *token)
     unsigned int index_deck = atoi(token);
     token = strtok(NULL, "  ");
     unsigned int nr_cards = atoi(token);
+    if (index_deck >= dll_get_size(deck_list))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
 
     dll_list *card_deck = dll_deck_get_nth_deck(deck_list, index_deck);
     card card_id;
@@ -158,12 +170,20 @@ void add_additional_cards(dll_list *deck_list, char *token)
             printf(INVALID_CARD);
         free(buff);
     }
+    printf("The cards were successfully added to deck %d.\n", index_deck);
 }
 
 void len_of_deck(dll_list *deck_list, char *token)
 {
     token = strtok(NULL, " ");
     unsigned int deck_index = atoi(token);
+
+    if (deck_index >= dll_get_size(deck_list))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
+
     dll_list *aux = deck_list->head;
     unsigned int i = 0;
     while (aux)
@@ -182,14 +202,25 @@ void shuffle_deck(dll_list *deck_list, char *token)
 {
     token = strtok(NULL, " ");
     unsigned int index_deck = atoi(token);
+    if (index_deck >= dll_get_size(deck_list))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
+
     dll_list *cards = dll_deck_get_nth_deck(deck_list, index_deck);
     int size;
 
     size = dll_get_size(cards);
+    if (size == 1)
+    {
+        printf("The deck %d was successfully shuffled.\n", index_deck);
+        return;
+    }
 
     dll_list *mid = cards->head;
     int n = 0;
-    while (n < size / 2)
+    while (n < size / 2 - 1)
     {
         mid = mid->next;
         n++;
@@ -204,29 +235,66 @@ void shuffle_deck(dll_list *deck_list, char *token)
     }
     dll_list *first = cards->head;
 
-    cards->head = mid;
+    cards->head = mid->next;
     last->next = first;
     first->prev = last;
-    mid->prev->next = NULL;
-    mid->prev = NULL;
+    mid->next->prev = NULL;
+    mid->next = NULL;
 
-    // dll_list *aux1 = cards->head;
-    // int half;
-    // if (size % 2)
-    //     half = size / 2 + 1;
-    // else
-    //     half = size / 2;
-    // for (int i = 0; i < half; i++)
-    // {
-    //     change_nodes(aux1, aux);
-    //     printf("---%d %d---\n", ((card *)(aux1->value))->number, ((card *)(aux->value))->number);
-    //     if (aux->next)
-    //         aux = aux->next;
-    //     if (aux1->next)
-    //         aux1 = aux1->next;
-    // }
+    printf("The deck %d was successfully shuffled.\n", index_deck);
 }
 
+void reverse_deck(dll_list *deck_list, char *token)
+{
+    token = strtok(NULL, "  ");
+    unsigned int index_deck = atoi(token);
+    if (index_deck >= dll_get_size(deck_list))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
+
+    dll_list *deck = dll_deck_get_nth_deck(deck_list, index_deck);
+    if (dll_get_size(deck) == 1)
+    {
+        printf("The deck %d was successfully reversed.\n", index_deck);
+        return;
+    }
+
+    dll_list *aux = deck->head, *last_node;
+
+    while (aux)
+    {
+        dll_list *tmp;
+        tmp = aux->next;
+        aux->next = aux->prev;
+        aux->prev = tmp;
+
+        if (!aux->prev)
+            last_node = aux;
+        aux = aux->prev;
+    }
+
+    deck->head = last_node;
+
+    printf("The deck %d was successfully reversed.\n", index_deck);
+}
+
+// dll_list *aux1 = cards->head;
+// int half;
+// if (size % 2)
+//     half = size / 2 + 1;
+// else
+//     half = size / 2;
+// for (int i = 0; i < half; i++)
+// {
+//     change_nodes(aux1, aux);
+//     printf("---%d %d---\n", ((card *)(aux1->value))->number, ((card *)(aux->value))->number);
+//     if (aux->next)
+//         aux = aux->next;
+//     if (aux1->next)
+//         aux1 = aux1->next;
+// }
 // void change_nodes(dll_list *a, dll_list *b)
 // {
 //     dll_list *left_first, *right_first, *left_second, *right_second;

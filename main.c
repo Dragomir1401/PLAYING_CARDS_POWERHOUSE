@@ -19,8 +19,7 @@ int main(void)
 
         if (!strncmp(token, "ADD_DECK", 8))
         {
-            dll_list *card_deck = deck_create(sizeof(card));
-            add_additional_deck(list_decks, token, card_deck);
+            add_additional_deck(list_decks, token);
         }
         else if (!strncmp(token, "SHOW_ALL", 8))
         {
@@ -44,7 +43,7 @@ int main(void)
         {
             token = strtok(NULL, "  ");
             unsigned int index = atoi(token);
-            del_deck(list_decks, index);
+            del_deck(list_decks, index, 0);
         }
         else if (!strncmp(token, "DEL_CARD", 8))
         {
@@ -65,6 +64,18 @@ int main(void)
         else if (!strncmp(token, "SHUFFLE_DECK", 12))
         {
             shuffle_deck(list_decks, token);
+        }
+        else if (!strncmp(token, "MERGE_DECKS", 11))
+        {
+            merge_decks(list_decks, token);
+        }
+        else if (!strncmp(token, "SPLIT_DECK", 10))
+        {
+            split_deck(list_decks, token);
+        }
+        else if (!strncmp(token, "REVERSE_DECK", 12))
+        {
+            reverse_deck(list_decks, token);
         }
         else
         {

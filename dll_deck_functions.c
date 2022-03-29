@@ -134,7 +134,7 @@ void dll_show_deck(dll_list *list, int n)
     }
 }
 
-void del_deck(dll_list *list, unsigned int index)
+void del_deck(dll_list *list, unsigned int index, int no_message)
 {
     if (index >= dll_get_size(list))
         printf(DECK_INDEX_OUT_OF_BOUNDS);
@@ -144,6 +144,8 @@ void del_deck(dll_list *list, unsigned int index)
         deck_free(removed->value);
         free(removed);
     }
+    if (!no_message)
+        printf("The deck %d was successfully deleted.\n", index);
 }
 
 void general_add_node(dll_list *list, dll_list *new_node, unsigned int n)
@@ -189,10 +191,11 @@ void general_add_node(dll_list *list, dll_list *new_node, unsigned int n)
     new_node->prev = aux;
 }
 
-void add_additional_deck(dll_list *list_decks, char *token, dll_list *card_deck)
+void add_additional_deck(dll_list *list_decks, char *token)
 {
     token = strtok(NULL, "  ");
     int nr_cards = atoi(token);
+    dll_list *card_deck = deck_create(sizeof(card));
 
     card card_id;
     int count = 0;
@@ -206,7 +209,7 @@ void add_additional_deck(dll_list *list_decks, char *token, dll_list *card_deck)
         strcpy(card_id.symbol, token);
         if (card_is_valid(card_id))
         {
-            deck_add_nth_card(card_deck, nr_cards, &card_id);
+            deck_add_nth_card(card_deck, count, &card_id);
             count++;
         }
         else
@@ -215,5 +218,137 @@ void add_additional_deck(dll_list *list_decks, char *token, dll_list *card_deck)
     }
 
     dll_deck_add_nth_deck(list_decks, dll_get_size(list_decks), card_deck);
-    printf("The deck was succesfully created with %d cards.\n", nr_cards);
+    printf("The deck was successfully created with %d cards.\n", nr_cards);
+}
+
+void merge_decks(dll_list *deck_list, char *token)
+{
+    token = strtok(NULL, "  ");
+    unsigned int index_deck1 = atoi(token);
+
+    token = strtok(NULL, "  ");
+    unsigned int index_deck2 = atoi(token);
+    if (index_deck1 >= dll_get_size(deck_list) || index_deck2 >= dll_get_size(deck_list))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
+
+    dll_list *deck1 = dll_deck_get_nth_deck(deck_list, index_deck1);
+    dll_list *deck2 = dll_deck_get_nth_deck(deck_list, index_deck2);
+    dll_list *new_deck;
+    new_deck = deck_create(sizeof(card));
+
+    dll_list *aux1 = deck1->head;
+    dll_list *aux2 = deck2->head;
+
+    card *card_id;
+    int count = 0;
+    while (aux1 && aux2)
+    {
+        card_id = (card *)(aux1->value);
+        deck_add_nth_card(new_deck, count, card_id);
+        count++;
+        card_id = (card *)(aux2->value);
+        deck_add_nth_card(new_deck, count, card_id);
+        count++;
+
+        aux1 = aux1->next;
+        aux2 = aux2->next;
+    }
+
+    if (!aux1)
+    {
+        while (aux2)
+        {
+            card *card_id = (card *)(aux2->value);
+            deck_add_nth_card(new_deck, count, card_id);
+            count++;
+
+            aux2 = aux2->next;
+        }
+    }
+
+    if (!aux2)
+    {
+        while (aux1)
+        {
+            card *card_id = (card *)(aux1->value);
+            deck_add_nth_card(new_deck, count, card_id);
+            count++;
+
+            aux1 = aux1->next;
+        }
+    }
+    if (index_deck1 < index_deck2)
+    {
+        del_deck(deck_list, index_deck1, 1);
+        del_deck(deck_list, index_deck2 - 1, 1);
+    }
+    else
+    {
+        del_deck(deck_list, index_deck2, 1);
+        del_deck(deck_list, index_deck1 - 1, 1);
+    }
+
+    dll_deck_add_nth_deck(deck_list, dll_get_size(deck_list), new_deck);
+    printf("The deck %d and the deck %d were successfully merged.\n", index_deck1, index_deck2);
+}
+
+void split_deck(dll_list *deck_list, char *token)
+{
+    token = strtok(NULL, "  ");
+    unsigned int index_deck = atoi(token);
+
+    token = strtok(NULL, "  ");
+    unsigned int index_split = atoi(token);
+
+    if (index_deck >= dll_get_size(deck_list))
+    {
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
+        return;
+    }
+
+    dll_list *deck = dll_deck_get_nth_deck(deck_list, index_deck);
+    dll_list *left_deck, *right_deck;
+    left_deck = deck_create(sizeof(card));
+    right_deck = deck_create(sizeof(card));
+
+    dll_list *aux = deck->head;
+
+    card *card_id;
+    unsigned int count_left = 0, i = 0, count_right = 0;
+    while (aux)
+    {
+        if (i < index_split)
+        {
+            card_id = (card *)(aux->value);
+            deck_add_nth_card(left_deck, count_left, card_id);
+            count_left++;
+        }
+        else
+        {
+            card_id = (card *)(aux->value);
+            deck_add_nth_card(right_deck, count_right, card_id);
+            count_right++;
+        }
+        i++;
+        aux = aux->next;
+    }
+
+    del_deck(deck_list, index_deck, 1);
+
+    if (count_left)
+        dll_deck_add_nth_deck(deck_list, index_deck, left_deck);
+    else
+        free(left_deck);
+
+    if (count_right && count_left)
+        dll_deck_add_nth_deck(deck_list, index_deck + 1, right_deck);
+    else if (count_right && !count_left)
+        dll_deck_add_nth_deck(deck_list, index_deck, right_deck);
+    else
+        free(right_deck);
+
+    printf("The deck %d was successfully split by index %d.\n", index_deck, index_split);
 }
