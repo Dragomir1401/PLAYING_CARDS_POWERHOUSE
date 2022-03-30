@@ -58,8 +58,8 @@ dll_list *deck_remove_nth_card(dll_list *list, unsigned int n)
         return removed;
     }
 
-    if (n > dll_get_size(list))
-        n = dll_get_size(list) - 1;
+    if (n >= dll_get_size(list))
+        printf(DECK_INDEX_OUT_OF_BOUNDS);
 
     behind = deck_get_nth_card(list, n - 1);
     dll_list *removed = behind->next;
@@ -72,37 +72,43 @@ dll_list *deck_remove_nth_card(dll_list *list, unsigned int n)
 
 void del_card(dll_list *list, unsigned int index_deck, unsigned int index_card)
 {
-    if (index_deck > dll_get_size(list))
+    if (index_deck >= dll_get_size(list))
     {
         printf(DECK_INDEX_OUT_OF_BOUNDS);
         return;
     }
+    dll_list *aux = dll_deck_get_nth_deck(list, index_deck);
 
-    dll_list *aux = list->head;
-    unsigned int i = 0, delete = 0;
-    while (aux)
+    unsigned int size = dll_get_size(aux);
+    if (index_card >= size)
     {
-        if (i == index_deck)
-        {
-            dll_list *aux1 = ((dll_list *)(aux->value));
-            if (index_card >= dll_get_size(aux1) && !delete)
-            {
-                printf(CARD_INDEX_OUT_OF_BOUNDS, index_deck);
-                return;
-            }
-            dll_list *removed = deck_remove_nth_card(aux1, index_card);
-            free(removed->value);
-            free(removed);
-
-            if (!dll_get_size(aux1))
-                delete = 1;
-        }
-
-        i++;
-        aux = aux->next;
+        printf(CARD_INDEX_OUT_OF_BOUNDS, index_deck);
+        return;
     }
-    if (delete)
+
+    if (size == 1)
+    {
         del_deck(list, index_deck, 1);
+        printf("The card was successfully deleted from deck %d.\n", index_deck);
+        return;
+    }
+
+    dll_list *second = aux->head->next;
+    dll_list *removed = deck_remove_nth_card(aux, index_card);
+    if (!index_card)
+    {
+        aux->head = second;
+        aux->head->prev = NULL;
+    }
+
+    if (index_card == size - 1)
+    {
+        removed->prev->next = NULL;
+    }
+
+    free(removed->value);
+    free(removed);
+
     printf("The card was successfully deleted from deck %d.\n", index_deck);
 }
 
@@ -244,6 +250,23 @@ void shuffle_deck(dll_list *deck_list, char *token)
     printf("The deck %d was successfully shuffled.\n", index_deck);
 }
 
+void reverse_recursive(dll_list *list, dll_list *node)
+{
+    if (!node || !list)
+        return;
+
+    dll_list *aux_node = NULL;
+
+    if (!node->next)
+        list->head = node;
+    else
+        reverse_recursive(list, node->next);
+
+    aux_node = node->next;
+    node->next = node->prev;
+    node->prev = aux_node;
+}
+
 void reverse_deck(dll_list *deck_list, char *token)
 {
     token = strtok(NULL, "  ");
@@ -261,21 +284,27 @@ void reverse_deck(dll_list *deck_list, char *token)
         return;
     }
 
-    dll_list *aux = deck->head, *last_node;
+    //dll_list *aux = deck->head, *last_node;
 
-    while (aux)
-    {
-        dll_list *tmp;
-        tmp = aux->next;
-        aux->next = aux->prev;
-        aux->prev = tmp;
+    // while (aux)
+    // {
+    //     if (!aux->next)
+    //         last_node = aux;
+    //     aux = aux->next;
+    // }
 
-        if (!aux->prev)
-            last_node = aux;
-        aux = aux->prev;
-    }
+    // aux = deck->head;
+    // deck->head = last_node;
+    reverse_recursive(deck, deck->head);
+    // while (aux)
+    // {
+    //     dll_list *tmp;
+    //     tmp = aux->next;
+    //     aux->next = aux->prev;
+    //     aux->prev = tmp;
 
-    deck->head = last_node;
+    //     aux = aux->prev;
+    // }
 
     printf("The deck %d was successfully reversed.\n", index_deck);
 }

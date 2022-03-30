@@ -26,7 +26,7 @@ dll_list *dll_deck_get_nth_deck(dll_list *list, unsigned int n)
     for (unsigned int i = 0; i < n; i++)
         aux = aux->next;
 
-    return (dll_list *)(aux->value);
+    return ((dll_list *)(aux->value));
 }
 
 void dll_deck_add_nth_deck(dll_list *list, unsigned int n, const void *id)
@@ -141,6 +141,11 @@ void del_deck(dll_list *list, unsigned int index, int no_message)
     else
     {
         dll_list *removed = deck_remove_nth_card(list, index);
+        if (!index)
+        {
+            list->head = removed->next;
+            list->head->prev = NULL;
+        }
         deck_free(removed->value);
         free(removed);
     }
